@@ -1,11 +1,13 @@
 # sort lines in msort.py
 __author__ = 'Ruslanas Balčiūnas'
 
-from msort import msort
+from msort import merge_sort
 
 f = open('msort.py', encoding='utf-8')
 lines = f.readlines()
 f.close()
+
+print('Sorting', len(lines), 'lines')
 
 stripped = []
 
@@ -13,7 +15,7 @@ for line in lines:
     stripped.append(line.strip())
 
 def test():
-    msort(stripped)
+    merge_sort(stripped)
 
 if __name__ == '__main__':
     import timeit

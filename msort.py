@@ -1,6 +1,7 @@
 __author__ = 'Ruslanas Balčiūnas'
 
-def msort(l):
+# divide and conquer algorithm
+def merge_sort(l):
     if len(l) < 2:
         return l
 
@@ -9,8 +10,8 @@ def msort(l):
 
     half = len(l) >> 1
 
-    a = msort(l[:half])
-    b = msort(l[half:])
+    a = merge_sort(l[:half])
+    b = merge_sort(l[half:])
 
     for k in range(0, len(l)):
 
