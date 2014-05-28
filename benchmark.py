@@ -22,7 +22,9 @@ def test():
 if __name__ == '__main__':
     # write duration and current time to a file
     t = timeit.timeit("test()", number=1, setup='from __main__ import test')
-    f = open(expanduser('~\\PycharmProjects\\Algorithms\\benchmark.dat'), 'a')
+
+    f = open('C:\\Users\\Ruslanas\\PycharmProjects\\Algorithms\\benchmark.dat', 'a')
+
     output = "%s %s\n" % (t, time.strftime('%Y-%m-%d %H:%M:%S'))
     f.write(output)
     f.close()

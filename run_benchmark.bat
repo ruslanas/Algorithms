@@ -1,1 +1,1 @@
-schtasks /Create /SC MINUTE /MO 1 /TN benchmark /TR "c:\Python33\python %userprofile%\PycharmProjects\Algorithms\benchmark.py"
+schtasks /Create /RU SYSTEM /SC MINUTE /MO 1 /TN benchmark /TR "c:\Python33\python C:\Users\Ruslanas\PycharmProjects\Algorithms\benchmark.py"
