@@ -1,22 +1,29 @@
-# sort lines in msort.py
+# -*- coding: utf-8 -*-
+# run on regular intervals to collect metric about computer performance during work day
+# results are analyzed by R later
+
 __author__ = 'Ruslanas Balčiūnas'
 
 from msort import merge_sort
+from os.path import expanduser
+import time
+import timeit
+import random
 
-f = open('msort.py', encoding='utf-8')
-lines = f.readlines()
-f.close()
+l = []
+for i in range(0, 100000):
+    l.append(random.randrange(0, 100))
 
-print('Sorting', len(lines), 'lines')
-
-stripped = []
-
-for line in lines:
-    stripped.append(line.strip())
+print('starting')
 
 def test():
-    merge_sort(stripped)
+    merge_sort(l)
 
 if __name__ == '__main__':
-    import timeit
-    print(timeit.timeit("test()", number=10000, setup='from __main__ import test'))
+    # write duration and current time to a file
+    t = timeit.timeit("test()", number=1, setup='from __main__ import test')
+    f = open(expanduser('~\\PycharmProjects\\Algorithms\\benchmark.dat'), 'a')
+    output = "%s %s\n" % (t, time.strftime('%Y-%m-%d %H:%M:%S'))
+    f.write(output)
+    f.close()
+    print('stopped')

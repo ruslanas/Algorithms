@@ -1,0 +1,1 @@
+schtasks /Create /SC MINUTE /MO 1 /TN benchmark /TR "c:\Python33\python %userprofile%\PycharmProjects\Algorithms\benchmark.py"
