@@ -11,6 +11,10 @@ import timeit
 import random
 
 l = []
+
+# generate same sequence on every run
+random.seed(1)
+
 for i in range(0, 100000):
     l.append(random.randrange(0, 100))
 
