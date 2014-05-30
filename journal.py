@@ -4,6 +4,7 @@ __author__ = 'Ruslanas Balčiūnas'
 from tkinter import *
 from time import strftime
 import os.path
+import sqlite3 as lite
 
 class Application(Frame):
     def __init__(self, master=None):
@@ -12,6 +13,7 @@ class Application(Frame):
 
         frame = Frame(self)
         frame.pack()
+        self.data = []
         self.listbox = Listbox(frame)
         self.scrollbar = Scrollbar(frame)
 
@@ -31,9 +33,11 @@ class Application(Frame):
         self.scrollbar.pack(side=RIGHT, fill=Y)
         self.scrollbar.config(command=self.listbox.yview)
         self.listbox.config(yscrollcommand=self.scrollbar.set)
+        self.listbox.bind('<Delete>', lambda x: self.deleteMessage())
 
         self.text.bind('<Return>', lambda x: self.save())
         self.text.pack(fill=X)
+        self.text.focus_set()
 
         self.add['text'] = 'Add note'
         self.add['command'] = self.save
@@ -46,15 +50,14 @@ class Application(Frame):
         self.loadMessages()
 
     def deleteMessage(self):
-        for i in self.listbox.curselection():
-            self.listbox.delete(i)
-
-        items = self.listbox.get(0, END)
-
-        f = open('applications.dat', 'w')
-        f.writelines(items)
-        f.close()
-
+        con = lite.connect('mess.db')
+        with con:
+            cur = con.cursor()
+            for i in self.listbox.curselection():
+                query = 'DELETE FROM messages WHERE id = %d' % (self.data[int(i)][0])
+                cur.execute(query)
+        con.close()
+        self.text.focus_set()
         self.loadMessages()
 
     def clearMessages(self):
@@ -62,24 +65,36 @@ class Application(Frame):
 
     def loadMessages(self):
         self.clearMessages()
-        if os.path.isfile('applications.dat'):
-            f = open('applications.dat', 'r')
-            lines = f.readlines()
-            for line in lines:
-                self.listbox.insert(END, line)
-            f.close()
+        con = lite.connect('mess.db')
+        with con:
+            cur = con.cursor()
+            cur.execute('SELECT id, created, message FROM messages')
+            self.data = cur.fetchall()
+
+        con.close()
+
+        for line in self.data:
+            self.listbox.insert(END, '%s - %s' % (line[1], line[2]))
 
     def save(self):
-        f = open('applications.dat', 'a')
-        t = strftime('%Y-%m-%d %H:%M:%S')
-        msg = '%s %s' % (t, self.text.get())
-        f.write(msg + '\n')
-        f.close()
+
+        query = "INSERT INTO messages (message) VALUES ('" + self.text.get() + "')"
+        con = lite.connect('mess.db')
+
+        with con:
+            cur = con.cursor()
+            cur.execute("CREATE TABLE IF NOT EXISTS"
+                        " messages (id INTEGER PRIMARY KEY,"
+                        " message VARCHAR(128), created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+            cur.execute(query)
+
+        con.close()
         self.text.delete(0, END)
         self.loadMessages()
 
 root = Tk()
 root.title('Journal')
+root.resizable(width=FALSE, height=FALSE)
 root.wm_attributes('-topmost', 1)
 app = Application(master=root)
 app.mainloop()
