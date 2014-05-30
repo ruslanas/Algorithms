@@ -47,8 +47,15 @@ class Application(Frame):
 
     def deleteMessage(self):
         for i in self.listbox.curselection():
-            print(i)
             self.listbox.delete(i)
+
+        items = self.listbox.get(0, END)
+
+        f = open('applications.dat', 'w')
+        f.writelines(items)
+        f.close()
+
+        self.loadMessages()
 
     def clearMessages(self):
         self.listbox.delete(0, END)
