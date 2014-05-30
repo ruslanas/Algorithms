@@ -2,10 +2,14 @@
 __author__ = 'Ruslanas Balčiūnas'
 
 from tkinter import *
+import tkinter.messagebox
 import sqlite3 as lite
 
 class Application(Frame):
     def __init__(self, master=None):
+        """
+        initialize
+        """
         Frame.__init__(self, master)
         self.pack()
 
@@ -14,8 +18,6 @@ class Application(Frame):
         self.data = []
         self.listbox = Listbox(frame)
         self.scrollbar = Scrollbar(frame)
-
-        self.menubar = Menu(self)
 
         self.text = Entry(self)
         self.add = Button(self)
@@ -37,11 +39,8 @@ class Application(Frame):
 
     def prepareWidgets(self):
         """
-        create GUI widgets
+        prepare GUI
         """
-
-        self.menubar.add_command(label='Database')
-        self.menubar.add_command(label='About')
 
         self.listbox.config(width=60)
         self.listbox.pack(side=LEFT, fill='y')
@@ -78,6 +77,11 @@ class Application(Frame):
         self.loadMessages()
 
     def deleteMessage(self):
+
+        if not tkinter.messagebox.askyesno('Delete task',
+                                           'Do you want to delete task?'):
+            return
+
         con = lite.connect('mess.db')
         with con:
             cur = con.cursor()
@@ -137,7 +141,5 @@ root.title('Mess')
 root.iconbitmap(default='mess.ico')
 root.resizable(width=FALSE, height=FALSE)
 root.wm_attributes('-topmost', 1)
-#root.wm_overrideredirect(TRUE)
 app = Application(master=root)
-root.config(menu=app.menubar)
 app.mainloop()
