@@ -10,7 +10,11 @@ class Application(Frame):
         Frame.__init__(self, master)
         self.pack()
 
-        self.listbox = Listbox(self)
+        frame = Frame(self)
+        frame.pack()
+        self.listbox = Listbox(frame)
+        self.scrollbar = Scrollbar(frame)
+
         self.text = Entry(self)
         self.add = Button(self)
         self.delete = Button(self)
@@ -21,20 +25,23 @@ class Application(Frame):
         """
         create GUI widgets
         """
+        self.listbox.config(width=100)
+        self.listbox.pack(side=LEFT, fill='y')
+
+        self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.scrollbar.config(command=self.listbox.yview)
+        self.listbox.config(yscrollcommand=self.scrollbar.set)
+
+        self.text.bind('<Return>', lambda x: self.save())
+        self.text.pack(fill=X)
+
         self.add['text'] = 'Add note'
         self.add['command'] = self.save
-        self.add.pack(side='bottom')
-
-        self.listbox.config(width=100)
-        self.listbox.pack(fill='y')
-
-        self.text.config(width=100)
-        self.text.bind('<Return>', lambda x: self.save())
-        self.text.pack()
+        self.add.pack(side='left')
 
         self.delete['text'] = 'Delete selected'
         self.delete['command'] = self.deleteMessage
-        self.delete.pack()
+        self.delete.pack(side='left')
 
         self.loadMessages()
 
