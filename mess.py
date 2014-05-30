@@ -15,17 +15,35 @@ class Application(Frame):
         self.listbox = Listbox(frame)
         self.scrollbar = Scrollbar(frame)
 
+        self.menubar = Menu(self)
+
         self.text = Entry(self)
         self.add = Button(self)
+        self.complete_btn = Button(self)
         self.delete = Button(self)
 
         self.prepareWidgets()
+
+    def taskCompleted(self):
+        con = lite.connect('mess.db')
+        with con:
+            cur = con.cursor()
+            for i in self.listbox.curselection():
+                query = 'UPDATE messages SET status = 1 WHERE id = %d' % (self.data[int(i)][0])
+                cur.execute(query)
+
+        con.close()
+        self.loadMessages()
 
     def prepareWidgets(self):
         """
         create GUI widgets
         """
-        self.listbox.config(width=80)
+
+        self.menubar.add_command(label='Database')
+        self.menubar.add_command(label='About')
+
+        self.listbox.config(width=60)
         self.listbox.pack(side=LEFT, fill='y')
 
         self.scrollbar.pack(side=RIGHT, fill=Y)
@@ -41,6 +59,16 @@ class Application(Frame):
         self.add['command'] = self.save
         self.add.config(takefocus=FALSE)
         self.add.pack(side=LEFT)
+
+        self.status = IntVar()
+        self.checkbox = Checkbutton(self, text='Show all',
+                                    command=self.loadMessages,
+                                    variable=self.status)
+        self.checkbox.pack(side=LEFT)
+
+        self.complete_btn['text'] = 'Done'
+        self.complete_btn['command'] = self.taskCompleted
+        self.complete_btn.pack(side=RIGHT)
 
         self.delete['text'] = 'Delete selected'
         self.delete['command'] = self.deleteMessage
@@ -65,11 +93,22 @@ class Application(Frame):
 
     def loadMessages(self):
         self.clearMessages()
+
         con = lite.connect('mess.db')
         with con:
             cur = con.cursor()
-            cur.execute('SELECT id, created, message FROM messages')
-            self.data = cur.fetchall()
+            cur.execute("SELECT COUNT(*) FROM sqlite_master"
+                        " WHERE type='table' AND name='messages'")
+
+            data = cur.fetchone()
+
+            if data[0]:
+                query = 'SELECT id, created, message FROM messages WHERE NOT status'
+                if self.status.get():
+                    query = 'SELECT id, created, message FROM messages'
+
+                cur.execute(query)
+                self.data = cur.fetchall()
 
         con.close()
 
@@ -84,7 +123,8 @@ class Application(Frame):
         with con:
             cur = con.cursor()
             cur.execute("CREATE TABLE IF NOT EXISTS"
-                        " messages (id INTEGER PRIMARY KEY,"
+                        " messages (id INTEGER PRIMARY KEY, completed BOOL DEFAULT 0,"
+                        " status bool DEFAULT 0, priority INT DEFAULT 0,"
                         " message VARCHAR(128), created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
             cur.execute(query)
 
@@ -99,4 +139,5 @@ root.resizable(width=FALSE, height=FALSE)
 root.wm_attributes('-topmost', 1)
 #root.wm_overrideredirect(TRUE)
 app = Application(master=root)
+root.config(menu=app.menubar)
 app.mainloop()
