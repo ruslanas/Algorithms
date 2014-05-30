@@ -18,8 +18,6 @@ random.seed(1)
 for i in range(0, 100000):
     l.append(random.randrange(0, 100))
 
-print('starting')
-
 def test():
     merge_sort(l)
 
@@ -32,4 +30,4 @@ if __name__ == '__main__':
     output = "%s %s\n" % (t, time.strftime('%Y-%m-%d %H:%M:%S'))
     f.write(output)
     f.close()
-    print('stopped')
+    print('Done.')

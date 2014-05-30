@@ -2,8 +2,6 @@
 __author__ = 'Ruslanas Balčiūnas'
 
 from tkinter import *
-from time import strftime
-import os.path
 import sqlite3 as lite
 
 class Application(Frame):
@@ -27,7 +25,7 @@ class Application(Frame):
         """
         create GUI widgets
         """
-        self.listbox.config(width=100)
+        self.listbox.config(width=80)
         self.listbox.pack(side=LEFT, fill='y')
 
         self.scrollbar.pack(side=RIGHT, fill=Y)
@@ -39,13 +37,15 @@ class Application(Frame):
         self.text.pack(fill=X)
         self.text.focus_set()
 
-        self.add['text'] = 'Add note'
+        self.add['text'] = 'Add task'
         self.add['command'] = self.save
-        self.add.pack(side='left')
+        self.add.config(takefocus=FALSE)
+        self.add.pack(side=LEFT)
 
         self.delete['text'] = 'Delete selected'
         self.delete['command'] = self.deleteMessage
-        self.delete.pack(side='left')
+        self.delete.config(takefocus=FALSE)
+        self.delete.pack(side=RIGHT)
 
         self.loadMessages()
 
@@ -93,8 +93,10 @@ class Application(Frame):
         self.loadMessages()
 
 root = Tk()
-root.title('Journal')
+root.title('Mess')
+root.iconbitmap(default='mess.ico')
 root.resizable(width=FALSE, height=FALSE)
 root.wm_attributes('-topmost', 1)
+#root.wm_overrideredirect(TRUE)
 app = Application(master=root)
 app.mainloop()
