@@ -98,7 +98,7 @@ class Application(Frame):
         self.listbox.delete(0, END)
 
     def loadAsync(self):
-        thread = bgThread()
+        thread = bgThread(self.loadMessages)
         thread.start()
 
     def loadMessages(self):
@@ -144,15 +144,16 @@ class Application(Frame):
         self.loadAsync()
 
 class bgThread(threading.Thread):
-    def __init__(self):
+    def __init__(self, func):
         threading.Thread.__init__(self)
+        self.func = func
 
     def run(self):
-        print('Loading messages..')
+        #print('Loading messages..')
         #import time
-        #time.sleep(10)
-        app.loadMessages()
-        print('Messages loaded!')
+        #time.sleep(5)
+        self.func()
+        #print('Messages loaded!')
 
 if __name__ == '__main__':
     root = Tk()
