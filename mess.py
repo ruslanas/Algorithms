@@ -4,6 +4,7 @@ __author__ = 'Ruslanas Balčiūnas'
 from tkinter import *
 import tkinter.messagebox
 import sqlite3 as lite
+import threading
 
 class Application(Frame):
     def __init__(self, master=None):
@@ -35,7 +36,7 @@ class Application(Frame):
                 cur.execute(query)
 
         con.close()
-        self.loadMessages()
+        self.loadAsync()
 
     def prepareWidgets(self):
         """
@@ -61,7 +62,7 @@ class Application(Frame):
 
         self.status = IntVar()
         self.checkbox = Checkbutton(self, text='Show all',
-                                    command=self.loadMessages,
+                                    command=self.loadAsync,
                                     variable=self.status)
         self.checkbox.pack(side=LEFT)
 
@@ -74,7 +75,7 @@ class Application(Frame):
         self.delete.config(takefocus=FALSE)
         self.delete.pack(side=RIGHT)
 
-        self.loadMessages()
+        self.loadAsync()
 
     def deleteMessage(self):
 
@@ -90,12 +91,18 @@ class Application(Frame):
                 cur.execute(query)
         con.close()
         self.text.focus_set()
-        self.loadMessages()
+
+        self.loadAsync()
 
     def clearMessages(self):
         self.listbox.delete(0, END)
 
+    def loadAsync(self):
+        thread = bgThread()
+        thread.start()
+
     def loadMessages(self):
+
         self.clearMessages()
 
         con = lite.connect('mess.db')
@@ -134,12 +141,24 @@ class Application(Frame):
 
         con.close()
         self.text.delete(0, END)
-        self.loadMessages()
+        self.loadAsync()
 
-root = Tk()
-root.title('Mess')
-root.iconbitmap(default='mess.ico')
-root.resizable(width=FALSE, height=FALSE)
-root.wm_attributes('-topmost', 1)
-app = Application(master=root)
-app.mainloop()
+class bgThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        print('Loading messages..')
+        #import time
+        #time.sleep(10)
+        app.loadMessages()
+        print('Messages loaded!')
+
+if __name__ == '__main__':
+    root = Tk()
+    root.title('Mess')
+    root.iconbitmap(default='mess.ico')
+    root.resizable(width=FALSE, height=FALSE)
+    root.wm_attributes('-topmost', 1)
+    app = Application(master=root)
+    app.mainloop()
