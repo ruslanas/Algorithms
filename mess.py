@@ -128,7 +128,7 @@ class Application(Frame):
             cur = con.cursor()
             cur.execute("CREATE TABLE IF NOT EXISTS"
                         " messages (id INTEGER PRIMARY KEY, completed BOOL DEFAULT 0,"
-                        " status bool DEFAULT 0, priority INT DEFAULT 0,"
+                        " status bool DEFAULT 0, priority INT DEFAULT 0, deadline DATETIME,"
                         " message VARCHAR(128), created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
             cur.execute(query)
 
