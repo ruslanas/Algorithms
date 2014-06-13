@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
+from threading import ThreadError
+
 __author__ = 'Ruslanas Balčiūnas'
 
 from tkinter import *
+from widgets import statusbar
 import tkinter.messagebox
 import sqlite3 as lite
 import threading
+import re
 
 class Application(Frame):
     def __init__(self, master=None):
         """
         initialize
         """
+        self.lock = threading.Lock()
+
         Frame.__init__(self, master)
         self.pack()
 
@@ -24,6 +30,8 @@ class Application(Frame):
         self.add = Button(self)
         self.complete_btn = Button(self)
         self.delete = Button(self)
+
+        self.status_bar = statusbar.StatusBar(self)
 
         self.prepareWidgets()
 
@@ -75,6 +83,8 @@ class Application(Frame):
         self.delete.config(takefocus=FALSE)
         self.delete.pack(side=RIGHT)
 
+        self.status_bar.pack(fill=X, side=RIGHT)
+
         self.loadAsync()
 
     def deleteMessage(self):
@@ -98,7 +108,8 @@ class Application(Frame):
         self.listbox.delete(0, END)
 
     def loadAsync(self):
-        thread = bgThread(self.loadMessages)
+        self.status_bar.set('Loading...')
+        thread = BackgroundThread(self.loadMessages, self.lock)
         thread.start()
 
     def loadMessages(self):
@@ -114,7 +125,8 @@ class Application(Frame):
             data = cur.fetchone()
 
             if data[0]:
-                query = 'SELECT id, created, message FROM messages WHERE NOT status'
+                query = "SELECT id, created, message FROM messages" \
+                        " WHERE NOT status ORDER BY created DESC"
                 if self.status.get():
                     query = 'SELECT id, created, message FROM messages'
 
@@ -126,9 +138,11 @@ class Application(Frame):
         for line in self.data:
             self.listbox.insert(END, '%s - %s' % (line[1], line[2]))
 
+        self.status_bar.set('Done.')
+
     def save(self):
 
-        query = "INSERT INTO messages (message) VALUES ('" + self.text.get() + "')"
+        query = "INSERT INTO messages (message) VALUES (?)"
         con = lite.connect('mess.db')
 
         with con:
@@ -137,23 +151,27 @@ class Application(Frame):
                         " messages (id INTEGER PRIMARY KEY, completed BOOL DEFAULT 0,"
                         " status bool DEFAULT 0, priority INT DEFAULT 0, deadline DATETIME,"
                         " message VARCHAR(128), created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
-            cur.execute(query)
+            cur.execute(query, (self.text.get(),))
 
         con.close()
         self.text.delete(0, END)
         self.loadAsync()
 
-class bgThread(threading.Thread):
-    def __init__(self, func):
+class BackgroundThread(threading.Thread):
+    def __init__(self, func, lock):
         threading.Thread.__init__(self)
+        self.lock = lock
         self.func = func
 
     def run(self):
-        #print('Loading messages..')
         #import time
         #time.sleep(5)
-        self.func()
-        #print('Messages loaded!')
+        if self.lock.acquire(False):
+            try:
+                self.func()
+            finally:
+                self.lock.release()
+
 
 if __name__ == '__main__':
     root = Tk()
