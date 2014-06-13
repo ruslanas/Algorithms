@@ -12,7 +12,7 @@ def print_sequence(seed, func=middle_square, length=10):
         n = func(n)
         print(n)
 
-def linear_congruential_sequence(seed, m=10, a=7, c=7):
+def linear_congruential_sequence(seed, m=30, a=31, c=7):
     return (a * seed + c) % m
 
 def find_loops(length=5, digits=4):
