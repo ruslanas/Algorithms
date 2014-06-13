@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from threading import ThreadError
 
 __author__ = 'Ruslanas Balčiūnas'
 
@@ -8,7 +7,6 @@ from widgets import statusbar
 import tkinter.messagebox
 import sqlite3 as lite
 import threading
-import re
 
 class Application(Frame):
     def __init__(self, master=None):
