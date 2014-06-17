@@ -49,6 +49,11 @@ class Species():
             for i in range(random.randint(2, 3)):
                 self.branch(end, levels=random.randint(levels - 2, levels - 1), start_angle=angle, length=int(length), width=width)
 
+        else:
+            tl = Point(start.x - 2, start.y - 2)
+            br = Point(start.x + 2, start.y + 2)
+            lines.append(canvas.create_oval(tl.x, tl.y, br.x, br.y))
+
 
 def seed(location, species, generations, spread):
     var = 0.8  # branch length variability
