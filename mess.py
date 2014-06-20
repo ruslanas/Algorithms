@@ -147,7 +147,7 @@ class Application(Frame):
         con.close()
 
         for line in self.data:
-            self.listbox.insert(END, '%s - %s' % (line[1], line[2]))
+            self.listbox.insert(END, '%s - %s' % (line[1][0:-3], line[2]))
 
         self.status_bar.set('Done.')
 
