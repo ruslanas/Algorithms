@@ -18,11 +18,14 @@ class Application(Frame):
         Frame.__init__(self, master)
         self.pack()
 
-        frame = Frame(self)
-        frame.pack()
+        self.toolbar = Frame(self)
+        self.search = Entry(self.toolbar)
+        self.search_btn = Button(self.toolbar)
+
+        self.frame = Frame(self)
         self.data = []
-        self.listbox = Listbox(frame)
-        self.scrollbar = Scrollbar(frame)
+        self.listbox = Listbox(self.frame)
+        self.scrollbar = Scrollbar(self.frame)
 
         self.text = Entry(self)
         self.add = Button(self)
@@ -49,6 +52,14 @@ class Application(Frame):
         prepare GUI
         """
 
+        self.toolbar.pack(side=TOP)
+        self.toolbar.pack(fill=X)
+        self.search.pack(side=LEFT)
+        self.search_btn['text'] = 'Search'
+        self.search_btn['command'] = self.loadMessages
+        self.search_btn.pack(side=LEFT)
+
+        self.frame.pack()
         self.listbox.config(width=60)
         self.listbox.pack(side=LEFT, fill='y')
 
@@ -124,11 +135,12 @@ class Application(Frame):
 
             if data[0]:
                 query = "SELECT id, created, message FROM messages" \
-                        " WHERE NOT status ORDER BY created DESC"
+                        " WHERE NOT status AND message LIKE '%' || ? || '%' ORDER BY created DESC"
                 if self.status.get():
-                    query = 'SELECT id, created, message FROM messages'
+                    query = "SELECT id, created, message" \
+                            " FROM messages WHERE message LIKE '%' || ? || '%' ORDER BY created DESC"
 
-                cur.execute(query)
+                cur.execute(query, (self.search.get(),))
                 self.data = cur.fetchall()
 
         con.close()
