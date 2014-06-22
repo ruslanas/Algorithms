@@ -55,8 +55,8 @@ class Application(Frame):
         self.toolbar.pack(side=TOP)
         self.toolbar.pack(fill=X)
         self.search.pack(side=LEFT)
-        self.search_btn['text'] = 'Search'
-        self.search.bind('<Key>', lambda x: self.loadMessages())
+        self.search_btn['text'] = 'Filter'
+        self.search.bind('<KeyRelease>', lambda x: self.loadMessages())
         self.search_btn['command'] = self.loadMessages
         self.search_btn.pack(side=LEFT)
 
