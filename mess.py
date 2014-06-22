@@ -157,12 +157,17 @@ class Application(Frame):
         con = lite.connect('mess.db')
 
         with con:
+            prefix = ''
+            if len(self.search.get()) and self.search.get()[0] == '#':
+                prefix = self.search.get()
+
+            msg = prefix + ' ' + self.text.get()
             cur = con.cursor()
             cur.execute("CREATE TABLE IF NOT EXISTS"
                         " messages (id INTEGER PRIMARY KEY, completed BOOL DEFAULT 0,"
                         " status bool DEFAULT 0, priority INT DEFAULT 0, deadline DATETIME,"
                         " message VARCHAR(128), created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
-            cur.execute(query, (self.text.get(),))
+            cur.execute(query, (msg,))
 
         con.close()
         self.text.delete(0, END)
