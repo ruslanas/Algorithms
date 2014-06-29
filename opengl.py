@@ -95,7 +95,9 @@ varying vec3 vPos;
 varying vec3 vNormal;
 
 void main(void) {
-    gl_FragColor = vec4(normalize(vNormal), 1.0);
+    vec3 light = vec3(0.5, 0.5, 0.5);
+    vec3 color = clamp(dot(normalize(vNormal), light), 0.0, 1.0);
+    gl_FragColor = vec4(color, 1.0);
 }
     """)
 
