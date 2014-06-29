@@ -36,13 +36,7 @@ def prga(key, length):
     return out
 
 
-def main():
-    print(rc4('Key', 'Plaintext'))
-    print(rc4('Wiki', 'pedia'))
-    print(rc4('Secret', 'Attack at dawn'))
-
-
-def rc4(key, plain_text):
+def rc4_encrypt(key, plain_text):
     key_stream = prga(key, len(plain_text))
     encrypted = ''
 
@@ -50,6 +44,22 @@ def rc4(key, plain_text):
         encrypted += "%02x" % xor(key_stream[i], ord(plain_text[i]))
 
     return encrypted.upper()
+
+
+def rc4_decrypt(key, cypher):
+    key_stream = prga(key, len(cypher) >> 1)
+    decrypted = ''
+    for i in range(0, len(cypher), 2):
+        x = chr(xor(key_stream[i >> 1], int('0x'+cypher[i:i+2], 16)))
+        decrypted += x
+
+    return decrypted
+
+
+def main():
+    print(rc4_decrypt('Key', rc4_encrypt('Key', 'Plaintext')))
+    print(rc4_encrypt('Wiki', 'pedia'))
+    print(rc4_encrypt('Secret', 'Attack at dawn'))
 
 
 if __name__ == '__main__':
