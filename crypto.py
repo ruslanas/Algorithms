@@ -37,23 +37,24 @@ def prga(key, length):
 
 
 def rc4_encrypt(key, plain_text):
+    plain_text = plain_text.encode('utf-8')
     key_stream = prga(key, len(plain_text))
     encrypted = ''
 
     for i in range(len(plain_text)):
-        encrypted += "%02x" % xor(key_stream[i], ord(plain_text[i]))
+        encrypted += "%02x" % xor(key_stream[i], plain_text[i])
 
     return encrypted.upper()
 
 
 def rc4_decrypt(key, cypher):
     key_stream = prga(key, len(cypher) >> 1)
-    decrypted = ''
+    decrypted = []
     for i in range(0, len(cypher), 2):
-        x = chr(xor(key_stream[i >> 1], int('0x'+cypher[i:i+2], 16)))
-        decrypted += x
+        b = (xor(key_stream[i >> 1], int('0x' + cypher[i:i+2], 16)))
+        decrypted.append(b)
 
-    return decrypted
+    return bytes(decrypted).decode('utf-8')
 
 
 def main():
