@@ -3,7 +3,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
 import random
-import numpy
+from graphics.vector import Vec3
 
 
 def init_fun():
@@ -38,32 +38,27 @@ def create_compile_shader(shader_type, source):
 
 
 def display_fun():
-    print('Load')
     glClear(GL_COLOR_BUFFER_BIT)
 
     glNewList(1, GL_COMPILE)
     glBegin(GL_TRIANGLES)
 
     for i in range(5):
-        v = []
+        vertices = []
         for i in range(3):
             x = random.random()
             y = random.random()
             z = random.random()
-            v.append([x, y, z])
+            vertices.append(Vec3(x, y, z))
 
-        m1 = numpy.matrix(v[0])
-        m2 = numpy.matrix(v[1])
-        m3 = numpy.matrix(v[2])
+        # cross product
+        norm = (vertices[0] - vertices[1]) ^ (vertices[0] - vertices[2])
 
-        norm = numpy.cross(m1 - m2, m3 - m2)
+        glNormal3f(norm.x, norm.y, norm.z)
 
-        glNormal3f(norm[0, 0], norm[0, 1], norm[0, 2])
-
-        glVertex3f(m1[0, 0], m1[0, 1], m1[0, 2])
-        glVertex3f(m2[0, 0], m2[0, 1], m2[0, 2])
-        glVertex3f(m3[0, 0], m3[0, 1], m3[0, 2])
-
+        glVertex3f(vertices[0].x, vertices[0].y, vertices[0].z)
+        glVertex3f(vertices[1].x, vertices[1].y, vertices[1].z)
+        glVertex3f(vertices[2].x, vertices[2].y, vertices[2].z)
 
     glEnd()
     glEndList()
