@@ -5,8 +5,15 @@ A little bit of school math and operator overloading.
 
 
 class Matrix():
+    def __repr__(self):
+        output = []
+        for i in range(self.rows):
+            output.append("[" + ",".join(map(lambda x: str(x), self.matrix[i])) + "]")
+
+        return 'graphics.matrix.Matrix([' + ",".join(output) + '])'
+
     def __call__(self, n, m):
-        return self.matrix[n][m]
+        return self.matrix[n - 1][m - 1]
 
     def __getitem__(self, n):
         return self.matrix[n]
@@ -30,7 +37,7 @@ class Matrix():
         return self.matrix.__str__()
 
     def __mul__(self, operand):
-        if isinstance(operand, int):
+        if isinstance(operand, (int, float)):
             output = []
             for i in range(self.rows):
                 row_output = []
@@ -42,7 +49,17 @@ class Matrix():
         elif isinstance(operand, self.__class__):
             return self.product(operand.matrix)
         else:
-            raise TypeError('Unknown operand type')
+            raise TypeError('Unsupported operand type')
+
+    @staticmethod
+    def transpose(matrix):
+        t = []
+        for j in range(matrix.columns):
+            row = []
+            for i in range(matrix.rows):
+                row.append(matrix.matrix[i][j])
+            t.append(row)
+        return Matrix(t)
 
     def transpose(self):
         t = []
@@ -51,7 +68,8 @@ class Matrix():
             for i in range(self.rows):
                 row.append(self.matrix[i][j])
             t.append(row)
-        return Matrix(t)
+        self.__init__(t)
+        return self
 
     def product(self, v2):
         v1 = self.matrix
@@ -70,7 +88,7 @@ class Matrix():
 
             v3.append(out_row)
 
-        return v3
+        return Matrix(v3)
 
 
 if __name__ == '__main__':
@@ -86,7 +104,9 @@ if __name__ == '__main__':
     print(a * 3)
     print(a.transpose())
     print(a * a.transpose())
+    print(Matrix.transpose(b))
+    print(a(1,1))
     try:
         print(a * 'string')
-    except TypeError:
-        print(Exception('Unsupported operand type'))
+    except TypeError as e:
+        print(e)
