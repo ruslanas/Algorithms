@@ -5,6 +5,12 @@ A little bit of school math and operator overloading.
 
 
 class Matrix():
+    def __call__(self, n, m):
+        return self.matrix[n][m]
+
+    def __getitem__(self, n):
+        return self.matrix[n]
+
     def __init__(self, matrix):
         self.matrix = matrix
         self.rows = len(matrix)
@@ -20,6 +26,9 @@ class Matrix():
 
         return output
 
+    def __str__(self):
+        return self.matrix.__str__()
+
     def __mul__(self, operand):
         if isinstance(operand, int):
             output = []
@@ -30,8 +39,19 @@ class Matrix():
                 output.append(row_output)
 
             return output
-        else:
+        elif isinstance(operand, self.__class__):
             return self.product(operand.matrix)
+        else:
+            raise TypeError('Unknown operand type')
+
+    def transpose(self):
+        t = []
+        for j in range(self.columns):
+            row = []
+            for i in range(self.rows):
+                row.append(self.matrix[i][j])
+            t.append(row)
+        return Matrix(t)
 
     def product(self, v2):
         v1 = self.matrix
@@ -45,10 +65,7 @@ class Matrix():
             for j in range(m):
                 s = 0
                 for k in range(p):
-                    try:
-                        s += v1[i][k] * v2[k][j]
-                    except IndexError as e:
-                        print(e)
+                    s += v1[i][k] * v2[k][j]
                 out_row.append(s)
 
             v3.append(out_row)
@@ -67,3 +84,9 @@ if __name__ == '__main__':
     print(a * b)
     print(a + 4)
     print(a * 3)
+    print(a.transpose())
+    print(a * a.transpose())
+    try:
+        print(a * 'string')
+    except TypeError:
+        print(Exception('Unsupported operand type'))
