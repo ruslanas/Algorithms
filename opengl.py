@@ -5,6 +5,8 @@ from OpenGL.GLU import *
 import random
 from graphics.vector import Vec3
 
+angle = random.randint(0, 90)
+
 
 def init_fun():
     print('Init')
@@ -14,6 +16,7 @@ def init_fun():
     gluLookAt(-10000.0, 10.0, 10.0, 0, 0, 0, 0, 1, 0)
 
     glLightfv(GL_LIGHT0, GL_POSITION, [2.0, 2.0, 2.0])
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE)
     glColor3f(1, 1, 1)
     glLoadIdentity()
 
@@ -38,27 +41,41 @@ def create_compile_shader(shader_type, source):
 
 
 def display_fun():
+    global angle
+    angle += 10
     glClear(GL_COLOR_BUFFER_BIT)
 
     glNewList(1, GL_COMPILE)
     glBegin(GL_TRIANGLES)
 
-    for i in range(5):
-        vertices = []
-        for i in range(3):
-            x = random.random()
-            y = random.random()
-            z = random.random()
-            vertices.append(Vec3(x, y, z))
+    faces = [
+        [Vec3(0, 0, 0), Vec3(1, 0, 0), Vec3(0, 1, 0)],
+        [Vec3(0, 1, 0), Vec3(1, 0, 0), Vec3(1, 1, 0)],
+        [Vec3(0, 0, 0), Vec3(0, 0, 1), Vec3(0, 1, 0)],
+        [Vec3(0, 1, 0), Vec3(0, 0, 1), Vec3(0, 1, 1)],
+        [Vec3(0, 0, 1), Vec3(1, 0, 1), Vec3(0, 1, 1)],
+        [Vec3(1, 0, 1), Vec3(1, 1, 1), Vec3(0, 1, 1)],
+        [Vec3(0, 0, 0), Vec3(1, 0, 0), Vec3(1, 0, 1)],
+        [Vec3(0, 0, 1), Vec3(0, 0, 0), Vec3(1, 0, 1)],
+    ]
+
+    for face in faces:
+
+        for vertex in face:
+            vertex.rotate_x(angle)
+            vertex.rotate_y(angle)
 
         # cross product
-        norm = (vertices[0] - vertices[1]) ^ (vertices[0] - vertices[2])
+        norm = (face[0] - face[1]) ^ (face[0] - face[2])
 
         glNormal3f(norm.x, norm.y, norm.z)
 
-        glVertex3f(vertices[0].x, vertices[0].y, vertices[0].z)
-        glVertex3f(vertices[1].x, vertices[1].y, vertices[1].z)
-        glVertex3f(vertices[2].x, vertices[2].y, vertices[2].z)
+        glColor3f(1, 0, 0)
+        glVertex3f(face[0].x, face[0].y, face[0].z)
+        glColor3f(0, 1, 0)
+        glVertex3f(face[1].x, face[1].y, face[1].z)
+        glColor3f(0, 0, 1)
+        glVertex3f(face[2].x, face[2].y, face[2].z)
 
     glEnd()
     glEndList()
@@ -92,7 +109,7 @@ varying vec3 vNormal;
 void main(void) {
     vec3 light = vec3(0.5, 0.5, 0.5);
     vec3 color = clamp(dot(normalize(vNormal), light), 0.0, 1.0);
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(mix(color, vec3(1.0, 0.0, 0.0), 0.5), 1.0);
 }
     """)
 

@@ -49,6 +49,21 @@ class Vec3():
         self.z = vec(3, 1)
         return self
 
+    def rotate_y(self, angle):
+        angle = angle * pi / 180
+        vector_matrix = Matrix([[self.x, self.y, self.z]])
+        vector_matrix.transpose()
+        rotation_matrix = Matrix([
+            [cos(angle), 0, sin(angle)],
+            [0, 1, 0],
+            [-sin(angle), 0, cos(angle)]
+        ])
+        vec = rotation_matrix * vector_matrix
+        self.x = vec(1, 1)
+        self.y = vec(2, 1)
+        self.z = vec(3, 1)
+        return self
+
     def rotate_x(self, angle):
         angle = angle * pi / 180
         vector_matrix = Matrix([[self.x, self.y, self.z]])
@@ -90,3 +105,4 @@ if __name__ == '__main__':
     v3 = Vec3(1, 1, 1)
     v3.normalize()
     print(v3.length())
+    print(Vec3(1, 0, 0).rotate_y(90))
