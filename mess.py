@@ -8,6 +8,7 @@ import tkinter.messagebox
 import sqlite3 as lite
 import threading
 
+
 class Application(Frame):
     def __init__(self, master=None):
         """
@@ -18,9 +19,16 @@ class Application(Frame):
         Frame.__init__(self, master)
         self.pack()
 
+        self.order = StringVar()
+        self.order.set("DESC")
+
         self.toolbar = Frame(self)
         self.search = Entry(self.toolbar)
         self.search_btn = Button(self.toolbar)
+        self.radio1 = Radiobutton(self.toolbar, text="Newest top",
+                                  variable=self.order, value="DESC", command=self.loadMessages)
+        self.radio2 = Radiobutton(self.toolbar, text="Oldest top",
+                                  variable=self.order, value="ASC", command=self.loadMessages)
 
         self.frame = Frame(self)
         self.data = []
@@ -60,8 +68,11 @@ class Application(Frame):
         self.search_btn['command'] = self.loadMessages
         self.search_btn.pack(side=LEFT)
 
+        self.radio1.pack(side=LEFT)
+        self.radio2.pack(side=LEFT)
+
         self.frame.pack()
-        self.listbox.config(width=60)
+        self.listbox.config(width=100)
         self.listbox.pack(side=LEFT, fill='y')
 
         self.scrollbar.pack(side=RIGHT, fill=Y)
@@ -135,21 +146,23 @@ class Application(Frame):
             data = cur.fetchone()
 
             if data[0]:
+                # default get not done
                 query = "SELECT id, created, message FROM messages" \
-                        " WHERE NOT status AND message LIKE '%' || ? || '%' ORDER BY created DESC"
+                        " WHERE NOT status AND message LIKE '%' || ? || '%' ORDER BY created " + self.order.get()
                 if self.status.get():
                     query = "SELECT id, created, message" \
-                            " FROM messages WHERE message LIKE '%' || ? || '%' ORDER BY created DESC"
+                            " FROM messages WHERE message LIKE '%' || ? || '%' ORDER BY created " + self.order.get()
 
                 cur.execute(query, (self.search.get(),))
                 self.data = cur.fetchall()
 
         con.close()
 
+        # add timestamp
         for line in self.data:
             self.listbox.insert(END, '%s - %s' % (line[1][0:-3], line[2]))
 
-        self.status_bar.set('Done.')
+        self.status_bar.set(str(len(self.data)) + ' tasks.')
 
     def save(self):
 
@@ -173,6 +186,7 @@ class Application(Frame):
         self.text.delete(0, END)
         self.loadAsync()
 
+
 class BackgroundThread(threading.Thread):
     def __init__(self, func, lock):
         threading.Thread.__init__(self)
@@ -180,8 +194,8 @@ class BackgroundThread(threading.Thread):
         self.func = func
 
     def run(self):
-        #import time
-        #time.sleep(5)
+        # import time
+        # time.sleep(5)
         if self.lock.acquire(False):
             try:
                 self.func()
