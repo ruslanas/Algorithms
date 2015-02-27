@@ -32,7 +32,7 @@ class Application(Frame):
 
         self.frame = Frame(self)
         self.data = []
-        self.listbox = Listbox(self.frame)
+        self.listbox = Listbox(self.frame, activestyle=NONE)
         self.scrollbar = Scrollbar(self.frame)
 
         self.text = Entry(self)
@@ -147,10 +147,10 @@ class Application(Frame):
 
             if data[0]:
                 # default get not done
-                query = "SELECT id, created, message FROM messages" \
+                query = "SELECT id, created, message, status FROM messages" \
                         " WHERE NOT status AND message LIKE '%' || ? || '%' ORDER BY created " + self.order.get()
                 if self.status.get():
-                    query = "SELECT id, created, message" \
+                    query = "SELECT id, created, message, status" \
                             " FROM messages WHERE message LIKE '%' || ? || '%' ORDER BY created " + self.order.get()
 
                 cur.execute(query, (self.search.get(),))
@@ -159,8 +159,10 @@ class Application(Frame):
         con.close()
 
         # add timestamp
-        for line in self.data:
-            self.listbox.insert(END, '%s - %s' % (line[1][0:-3], line[2]))
+        for (i, line) in enumerate(self.data):
+            self.listbox.insert(END, '%s %s' % (line[1][0:-3], line[2]))
+            if line[3]:
+                self.listbox.itemconfig(i, fg='#CCCCCC')
 
         self.status_bar.set(str(len(self.data)) + ' tasks.')
 
