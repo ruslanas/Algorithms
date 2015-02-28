@@ -26,9 +26,11 @@ class Application(Frame):
         self.search = Entry(self.toolbar)
         self.search_btn = Button(self.toolbar)
         self.radio1 = Radiobutton(self.toolbar, text="Newest top",
-                                  variable=self.order, value="DESC", command=self.loadMessages)
+                                  variable=self.order, value="DESC",
+                                  command=self.loadMessages)
         self.radio2 = Radiobutton(self.toolbar, text="Oldest top",
-                                  variable=self.order, value="ASC", command=self.loadMessages)
+                                  variable=self.order, value="ASC",
+                                  command=self.loadMessages)
 
         self.frame = Frame(self)
         self.data = []
@@ -41,23 +43,51 @@ class Application(Frame):
         self.delete = Button(self)
 
         self.status_bar = statusbar.StatusBar(self)
+        self.status = IntVar()
+        self.checkbox = Checkbutton(self, text='Show all',
+                                    command=self.loadAsync,
+                                    variable=self.status)
+        self.important = Button(self,
+                                command = lambda : self.set_important('FF0000'),
+                                bg="#FF0000",
+                                activebackground="#FF0000",
+                                padx="5",
+                                fg="#FFFFFF")
+        self.unimportant = Button(self,
+                                command = lambda : self.set_important('000000'),
+                                bg="#000000",
+                                activebackground="#000000",
+                                padx="5",
+                                fg="#FFFFFF")
 
         self.prepareWidgets()
 
-    def taskCompleted(self):
-        con = lite.connect('mess.db')
-        with con:
-            cur = con.cursor()
+        self.con = lite.connect('mess.db')
+
+    def set_important(self, code):
+        with self.con:
+            cur = self.con.cursor()
             for i in self.listbox.curselection():
-                query = 'UPDATE messages SET status = 1 WHERE id = %d' % (self.data[int(i)][0])
+                query = "UPDATE messages SET color = '%s'" \
+                        " WHERE id = %d" % (code, self.data[int(i)][0])
                 cur.execute(query)
 
-        con.close()
+        self.loadAsync()
+
+    def taskCompleted(self):
+        with self.con:
+            cur = self.con.cursor()
+            for i in self.listbox.curselection():
+                query = 'UPDATE messages SET status = 1' \
+                        ' WHERE id = %d' % (self.data[int(i)][0])
+                cur.execute(query)
+
         self.loadAsync()
 
     def prepareWidgets(self):
         """
         prepare GUI
+        :type self: object
         """
 
         self.toolbar.pack(side=TOP)
@@ -89,13 +119,15 @@ class Application(Frame):
         self.add.config(takefocus=FALSE)
         self.add.pack(side=LEFT)
 
-        self.status = IntVar()
-        self.checkbox = Checkbutton(self, text='Show all',
-                                    command=self.loadAsync,
-                                    variable=self.status)
         self.checkbox.pack(side=LEFT)
 
-        self.complete_btn['text'] = 'Done'
+        self.important['text'] = ' '
+        self.important.pack(side=RIGHT)
+
+        self.unimportant['text'] = ' '
+        self.unimportant.pack(side=RIGHT)
+
+        self.complete_btn['text'] = 'Completed'
         self.complete_btn['command'] = self.taskCompleted
         self.complete_btn.pack(side=RIGHT)
 
@@ -114,13 +146,13 @@ class Application(Frame):
                                            'Do you want to delete task?'):
             return
 
-        con = lite.connect('mess.db')
-        with con:
-            cur = con.cursor()
+        with self.con:
+            cur = self.con.cursor()
             for i in self.listbox.curselection():
-                query = 'DELETE FROM messages WHERE id = %d' % (self.data[int(i)][0])
+                query = 'DELETE FROM messages' \
+                        ' WHERE id = %d' % (self.data[int(i)][0])
                 cur.execute(query)
-        con.close()
+
         self.text.focus_set()
 
         self.loadAsync()
@@ -147,11 +179,16 @@ class Application(Frame):
 
             if data[0]:
                 # default get not done
-                query = "SELECT id, created, message, status FROM messages" \
-                        " WHERE NOT status AND message LIKE '%' || ? || '%' ORDER BY created " + self.order.get()
+                query = "SELECT id, created, message, status, color" \
+                        " FROM messages" \
+                        " WHERE NOT status AND message LIKE '%' || ? || '%'" \
+                        " ORDER BY created " + self.order.get()
+
                 if self.status.get():
-                    query = "SELECT id, created, message, status" \
-                            " FROM messages WHERE message LIKE '%' || ? || '%' ORDER BY created " + self.order.get()
+                    query = "SELECT id, created, message, status, color" \
+                            " FROM messages" \
+                            " WHERE message LIKE '%' || ? || '%'" \
+                            " ORDER BY created " + self.order.get()
 
                 cur.execute(query, (self.search.get(),))
                 self.data = cur.fetchall()
@@ -163,28 +200,35 @@ class Application(Frame):
             self.listbox.insert(END, '%s %s' % (line[1][0:-3], line[2]))
             if line[3]:
                 self.listbox.itemconfig(i, fg='#CCCCCC')
+            else:
+                self.listbox.itemconfig(i, fg="#" + line[4])
 
         self.status_bar.set(str(len(self.data)) + ' tasks.')
 
     def save(self):
 
         query = "INSERT INTO messages (message) VALUES (?)"
-        con = lite.connect('mess.db')
 
-        with con:
+        with self.con:
             prefix = ''
+            # add current tag
             if len(self.search.get()) and self.search.get()[0] == '#':
                 prefix = self.search.get()
 
             msg = prefix + ' ' + self.text.get()
-            cur = con.cursor()
+            cur = self.con.cursor()
             cur.execute("CREATE TABLE IF NOT EXISTS"
-                        " messages (id INTEGER PRIMARY KEY, completed BOOL DEFAULT 0,"
-                        " status bool DEFAULT 0, priority INT DEFAULT 0, deadline DATETIME,"
-                        " message VARCHAR(128), created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+                        " messages (id INTEGER PRIMARY KEY,"
+                        " completed BOOL DEFAULT 0,"
+                        " color VARCHAR(6) DEFAULT '000000',"
+                        " status bool DEFAULT 0,"
+                        " priority INT DEFAULT 0,"
+                        " deadline DATETIME,"
+                        " message VARCHAR(128),"
+                        " created TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+
             cur.execute(query, (msg,))
 
-        con.close()
         self.text.delete(0, END)
         self.loadAsync()
 
@@ -196,8 +240,6 @@ class BackgroundThread(threading.Thread):
         self.func = func
 
     def run(self):
-        # import time
-        # time.sleep(5)
         if self.lock.acquire(False):
             try:
                 self.func()
