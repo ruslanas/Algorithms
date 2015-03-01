@@ -68,11 +68,10 @@ class Application(Frame):
         with self.con:
             cur = self.con.cursor()
             for i in self.listbox.curselection():
+                self.listbox.itemconfig(i, fg='#' + code)
                 query = "UPDATE messages SET color = '%s'" \
                         " WHERE id = %d" % (code, self.data[int(i)][0])
                 cur.execute(query)
-
-        self.loadAsync()
 
     def taskCompleted(self):
         with self.con:
@@ -108,7 +107,7 @@ class Application(Frame):
         self.scrollbar.pack(side=RIGHT, fill=Y)
         self.scrollbar.config(command=self.listbox.yview)
         self.listbox.config(yscrollcommand=self.scrollbar.set)
-        self.listbox.bind('<Delete>', lambda x: self.deleteMessage())
+        self.listbox.bind('<Delete>', lambda x: self.delete_task())
 
         self.text.bind('<Return>', lambda x: self.save())
         self.text.pack(fill=X)
@@ -132,7 +131,7 @@ class Application(Frame):
         self.complete_btn.pack(side=RIGHT)
 
         self.delete['text'] = 'Delete selected'
-        self.delete['command'] = self.deleteMessage
+        self.delete['command'] = self.delete_task
         self.delete.config(takefocus=FALSE)
         self.delete.pack(side=RIGHT)
 
@@ -140,7 +139,7 @@ class Application(Frame):
 
         self.loadAsync()
 
-    def deleteMessage(self):
+    def delete_task(self):
 
         if not tkinter.messagebox.askyesno('Delete task',
                                            'Do you want to delete task?'):
